@@ -1,4 +1,4 @@
-# This workflow installs the latest version of Terraform CLI. On pull request events, this workflow will run
+# This workflow installs the latest version of Terraform CLI. On branch push events, this workflow will run
 # `terraform init`, `terraform fmt`, and `terraform plan`.
 #
 # Documentation for `hashicorp/setup-terraform` is located here: https://github.com/hashicorp/setup-terraform
