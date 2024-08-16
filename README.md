@@ -2,6 +2,8 @@
 
 This Terraform module replicates the changes in an AWS S3 bucket onto a Backblaze B2 bucket resulting in the B2 bucket content being identical to the S3 bucket content.
 
+This module is published in [Terraform Registry](https://registry.terraform.io/modules/silinternational/sync-s3-to-b2/aws/latest).
+
 ## What this does
 
 * Creates an IAM user with permissions to read the S3 bucket
