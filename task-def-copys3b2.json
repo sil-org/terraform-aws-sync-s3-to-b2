@@ -63,7 +63,7 @@
     "memory": null,
     "memoryReservation": ${memory},
     "volumesFrom": [],
-    "image": "silintl/sync-s3-to-b2:0.1.0",
+    "image": "ghcr.io/sil-org/sync-s3-to-b2:0.1.1",
     "disableNetworking": null,
     "essential": true,
     "links": null,
