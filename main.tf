@@ -3,7 +3,7 @@
  * Create user for getting files from the bucket
  */
 resource "aws_iam_user" "clone" {
-  name = "s3-clone-${local.app_name_and_env}-${var.s3_bucket_name}"
+  name = "s3-clone-${local.app_name_and_env}-${random_id.this.hex}"
 }
 
 resource "aws_iam_access_key" "clone" {
@@ -11,7 +11,7 @@ resource "aws_iam_access_key" "clone" {
 }
 
 resource "aws_iam_user_policy" "clone" {
-  name = "S3-Clone-Backup-${var.s3_bucket_name}"
+  name = "S3-Clone-Backup-${random_id.this.hex}"
   user = aws_iam_user.clone.name
 
   policy = jsonencode({
@@ -67,7 +67,7 @@ locals {
  * Create role for scheduled running of rclone task definition.
  */
 resource "aws_iam_role" "rclone_event" {
-  name = "rclone_event-${local.app_name_and_env}-s3copy-${var.s3_bucket_name}"
+  name = "rclone_event-${local.app_name_and_env}-s3copy-${random_id.this.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -85,7 +85,7 @@ resource "aws_iam_role" "rclone_event" {
 }
 
 resource "aws_iam_role_policy" "rclone_event_run_task_with_any_role" {
-  name = "rclone_event_run_task_with_any_role-${var.s3_bucket_name}"
+  name = "rclone_event_run_task_with_any_role-${random_id.this.hex}"
   role = aws_iam_role.rclone_event.id
 
   policy = jsonencode({
@@ -118,14 +118,14 @@ resource "aws_ecs_task_definition" "clone_cron_td" {
  * CloudWatch configuration to start scheduled backup of S3 using rclone.
  */
 resource "aws_cloudwatch_event_rule" "s3_clone_event_rule" {
-  name        = "${local.app_name_and_env}-s3clone-${var.s3_bucket_name}"
+  name        = "${local.app_name_and_env}-s3clone-${random_id.this.hex}"
   description = "Start scheduled backup of S3 using rclone"
 
   schedule_expression = var.schedule
 }
 
 resource "aws_cloudwatch_event_target" "clone_event_target" {
-  target_id = "${local.app_name_and_env}-s3clone-${var.s3_bucket_name}"
+  target_id = "${local.app_name_and_env}-s3clone-${random_id.this.hex}"
   rule      = aws_cloudwatch_event_rule.s3_clone_event_rule.name
   arn       = var.ecs_cluster_id
   role_arn  = aws_iam_role.rclone_event.arn
@@ -135,4 +135,8 @@ resource "aws_cloudwatch_event_target" "clone_event_target" {
     launch_type         = "EC2"
     task_definition_arn = aws_ecs_task_definition.clone_cron_td.arn
   }
+}
+
+resource "random_id" "this" {
+  byte_length = 2
 }
