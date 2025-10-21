@@ -2,7 +2,7 @@
 
 This Terraform module replicates the changes in an AWS S3 bucket onto a Backblaze B2 bucket resulting in the B2 bucket content being identical to the S3 bucket content.
 
-This module is published in [Terraform Registry](https://registry.terraform.io/modules/silinternational/sync-s3-to-b2/aws/latest).
+This module is published in [Terraform Registry](https://registry.terraform.io/modules/sil-org/sync-s3-to-b2/aws/latest).
 
 ## What this does
 
@@ -38,7 +38,7 @@ _none_
 
 ```hcl
 module "sync_s3_to_b2" {
-  source = "github.com/silinternational/terraform-aws-sync-s3-to-b2"
+  source = "github.com/sil-org/terraform-aws-sync-s3-to-b2"
 
   app_name              = var.app_name
   app_env               = var.app_env
