@@ -55,7 +55,7 @@ locals {
           awslogs-region        = local.aws_region
           awslogs-stream-prefix = var.app_name
         }
-      },
+      }
       cpu = var.cpu
       environment = [
         {
@@ -98,10 +98,10 @@ locals {
           name  = "RCLONE_ARGUMENTS"
           value = var.rclone_arguments
         },
-      ],
+      ]
       memoryReservation = var.memory
       image             = "ghcr.io/sil-org/sync-s3-to-b2:0.1.1"
-      essential         = true,
+      essential         = true
       name              = "rclone"
     }
     ]
