@@ -1,18 +1,30 @@
 
 /*
- * Create user for getting files from the bucket
+ * Create role for getting files from the bucket
  */
-resource "aws_iam_user" "clone" {
-  name = "s3-clone-${local.app_name_and_env}-${random_id.this.hex}"
+/*
+ * Create ECS task role
+ */
+resource "aws_iam_role" "clone" {
+  name = "db-backup-${local.app_name_and_env}-${local.aws_region}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "ECSAssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = ["ecs-tasks.amazonaws.com"] }
+      Action    = "sts:AssumeRole"
+      Condition = {
+        ArnLike      = { "aws:SourceArn" = "arn:aws:ecs:${local.aws_region}:${local.aws_account}:*" }
+        StringEquals = { "aws:SourceAccount" = local.aws_account }
+      }
+    }]
+  })
 }
 
-resource "aws_iam_access_key" "clone" {
-  user = aws_iam_user.clone.name
-}
-
-resource "aws_iam_user_policy" "clone" {
+resource "aws_iam_role_policy" "clone" {
   name = "S3-Clone-Backup-${random_id.this.hex}"
-  user = aws_iam_user.clone.name
+  role = aws_iam_role.clone.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -32,6 +44,8 @@ resource "aws_iam_user_policy" "clone" {
   })
 }
 
+data "aws_caller_identity" "this" {}
+
 data "aws_region" "current" {}
 
 data "aws_s3_bucket" "this" {
@@ -43,6 +57,7 @@ data "aws_s3_bucket" "this" {
  */
 locals {
   app_name_and_env = "${var.app_name}-${var.app_env}"
+  aws_account      = data.aws_caller_identity.this
   aws_region       = data.aws_region.current.name
 
   task_def_clone = jsonencode([
@@ -59,24 +74,8 @@ locals {
       cpu = var.cpu
       environment = [
         {
-          name  = "AWS_ACCESS_KEY"
-          value = aws_iam_access_key.clone.id
-        },
-        {
-          name  = "AWS_SECRET_KEY"
-          value = aws_iam_access_key.clone.secret
-        },
-        {
           name  = "AWS_REGION"
           value = local.aws_region
-        },
-        {
-          name  = "B2_APPLICATION_KEY_ID"
-          value = var.b2_application_key_id
-        },
-        {
-          name  = "B2_APPLICATION_KEY"
-          value = var.b2_application_key
         },
         {
           name  = "S3_BUCKET"
@@ -99,8 +98,18 @@ locals {
           value = var.rclone_arguments
         },
       ]
+      secrets = [
+        {
+          name      = "B2_APPLICATION_KEY_ID"
+          valueFrom = var.b2_application_key_id_arn
+        },
+        {
+          name      = "B2_APPLICATION_KEY"
+          valueFrom = var.b2_application_key_arn
+        },
+      ]
       memoryReservation = var.memory
-      image             = "ghcr.io/sil-org/sync-s3-to-b2:0.1.1"
+      image             = "ghcr.io/sil-org/sync-s3-to-b2:0.2.0"
       essential         = true
       name              = "rclone"
     }
@@ -137,9 +146,12 @@ resource "aws_iam_role_policy" "rclone_event_run_task_with_any_role" {
     Version = "2012-10-17"
     Statement = concat([
       {
-        Effect   = "Allow"
-        Action   = "iam:PassRole"
-        Resource = "*"
+        Effect = "Allow"
+        Action = "iam:PassRole"
+        Resource = [
+          aws_iam_role.clone.arn,
+          aws_iam_role.rclone_event.arn,
+        ]
       },
       {
         Effect   = "Allow"
@@ -157,6 +169,8 @@ resource "aws_ecs_task_definition" "clone_cron_td" {
   family                = "${var.app_name}-clone-${var.app_env}"
   container_definitions = local.task_def_clone
   network_mode          = "bridge"
+  execution_role_arn    = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn         = aws_iam_role.clone.arn
 }
 
 /*
@@ -184,4 +198,44 @@ resource "aws_cloudwatch_event_target" "clone_event_target" {
 
 resource "random_id" "this" {
   byte_length = 2
+}
+
+
+/*
+ * ECS Task Execution Role to allow ECS to assume a role for access to SSM Parameter Store
+ */
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecs-task-execution-${var.app_name}-${var.app_env}-${local.aws_region}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy" "ecs_task_execution_ssm_policy" {
+  name = "ssm-parameter-access"
+  role = aws_iam_role.ecs_task_execution_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["ssm:GetParameters"]
+        Resource = [
+          var.b2_application_key_id_arn,
+          var.b2_application_key_arn,
+        ]
+      }
+    ]
+  })
 }

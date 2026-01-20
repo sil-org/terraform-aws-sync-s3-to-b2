@@ -8,13 +8,13 @@ variable "app_name" {
   type        = string
 }
 
-variable "b2_application_key_id" {
-  description = "Backblaze application key ID"
+variable "b2_application_key_id_arn" {
+  description = "SSM parameter ARN for the Backblaze application key ID"
   type        = string
 }
 
-variable "b2_application_key" {
-  description = "Backblaze application key secret"
+variable "b2_application_key_arn" {
+  description = "SSM parameter ARN for the Backblaze application key secret"
   type        = string
 }
 
