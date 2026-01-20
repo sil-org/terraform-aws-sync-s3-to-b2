@@ -45,22 +45,67 @@ locals {
   app_name_and_env = "${var.app_name}-${var.app_env}"
   aws_region       = data.aws_region.current.name
 
-  task_def_clone = templatefile("${path.module}/task-def-copys3b2.json", {
-    app_name              = var.app_name
-    aws_access_key        = aws_iam_access_key.clone.id
-    aws_secret_key        = aws_iam_access_key.clone.secret
-    aws_region            = local.aws_region
-    b2_application_key_id = var.b2_application_key_id
-    b2_application_key    = var.b2_application_key
-    s3_bucket             = var.s3_bucket_name
-    s3_path               = var.s3_path
-    b2_bucket             = var.b2_bucket
-    b2_path               = var.b2_path
-    rclone_arguments      = var.rclone_arguments
-    log_group_name        = var.log_group_name
-    cpu                   = var.cpu
-    memory                = var.memory
-  })
+  task_def_clone = jsonencode([
+    {
+      dnsSearchDomains = null
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = var.log_group_name
+          awslogs-region        = local.aws_region
+          awslogs-stream-prefix = var.app_name
+        }
+      },
+      cpu = var.cpu
+      environment = [
+        {
+          name  = "AWS_ACCESS_KEY"
+          value = aws_iam_access_key.clone.id
+        },
+        {
+          name  = "AWS_SECRET_KEY"
+          value = aws_iam_access_key.clone.secret
+        },
+        {
+          name  = "AWS_REGION"
+          value = local.aws_region
+        },
+        {
+          name  = "B2_APPLICATION_KEY_ID"
+          value = var.b2_application_key_id
+        },
+        {
+          name  = "B2_APPLICATION_KEY"
+          value = var.b2_application_key
+        },
+        {
+          name  = "S3_BUCKET"
+          value = var.s3_bucket_name
+        },
+        {
+          name  = "S3_PATH"
+          value = var.s3_path
+        },
+        {
+          name  = "B2_BUCKET"
+          value = var.b2_bucket
+        },
+        {
+          name  = "B2_PATH"
+          value = var.b2_path
+        },
+        {
+          name  = "RCLONE_ARGUMENTS"
+          value = var.rclone_arguments
+        },
+      ],
+      memoryReservation = var.memory
+      image             = "ghcr.io/sil-org/sync-s3-to-b2:0.1.1"
+      essential         = true,
+      name              = "rclone"
+    }
+    ]
+  )
 }
 
 /*
