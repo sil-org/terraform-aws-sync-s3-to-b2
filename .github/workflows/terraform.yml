@@ -36,3 +36,13 @@ jobs:
     # Validate the files, referring only to the configuration and not accessing any remote services
     - name: Terraform Validate
       run: terraform -chdir=test validate
+
+    # Install Terraform 1.7, which is the earliest that supports `terraform test`.
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.7.5"
+
+      # Test
+    - name: Terraform Test
+      run: terraform -chdir=test test -verbose
