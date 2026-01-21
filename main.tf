@@ -57,7 +57,7 @@ data "aws_s3_bucket" "this" {
  */
 locals {
   app_name_and_env = "${var.app_name}-${var.app_env}"
-  aws_account      = data.aws_caller_identity.this
+  aws_account      = data.aws_caller_identity.this.account_id
   aws_region       = data.aws_region.current.name
 
   task_def_clone = jsonencode([
