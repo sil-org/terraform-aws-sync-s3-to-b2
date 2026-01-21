@@ -30,7 +30,7 @@ variable "b2_path" {
 
 variable "cpu" {
   description = "Amount of CPU to allocate to the task"
-  type        = string
+  type        = number
 }
 
 variable "ecs_cluster_id" {
@@ -45,7 +45,7 @@ variable "log_group_name" {
 
 variable "memory" {
   description = "Amount of memory to allocate to the task"
-  type        = string
+  type        = number
 }
 
 variable "rclone_arguments" {
