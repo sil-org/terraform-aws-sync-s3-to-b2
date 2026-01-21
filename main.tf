@@ -6,7 +6,7 @@
  * Create ECS task role
  */
 resource "aws_iam_role" "clone" {
-  name = "db-backup-${local.app_name_and_env}-${local.aws_region}"
+  name = "clone-${local.app_name_and_env}-${random_id.this.hex}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -206,10 +206,11 @@ resource "random_id" "this" {
  */
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs-task-execution-${var.app_name}-${var.app_env}-${local.aws_region}"
+  name = "clone-task-exec-${var.app_name}-${var.app_env}-${random_id.this.hex}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
+      Sid       = "TaskExecution"
       Effect    = "Allow"
       Principal = { Service = "ecs-tasks.amazonaws.com" }
       Action    = "sts:AssumeRole"
