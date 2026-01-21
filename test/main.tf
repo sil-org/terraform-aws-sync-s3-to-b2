@@ -8,10 +8,10 @@ module "minimal" {
   b2_application_key_arn    = ""
   b2_bucket                 = ""
   b2_path                   = ""
-  cpu                       = ""
+  cpu                       = 1
   ecs_cluster_id            = ""
   log_group_name            = ""
-  memory                    = ""
+  memory                    = 1
   rclone_arguments          = ""
   schedule                  = ""
   s3_bucket_name            = ""
@@ -27,10 +27,10 @@ module "full" {
   b2_application_key_arn    = ""
   b2_bucket                 = ""
   b2_path                   = ""
-  cpu                       = ""
+  cpu                       = 1
   ecs_cluster_id            = ""
   log_group_name            = ""
-  memory                    = ""
+  memory                    = 1
   rclone_arguments          = ""
   schedule                  = ""
   s3_bucket_name            = ""
