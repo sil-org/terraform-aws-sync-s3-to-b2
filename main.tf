@@ -148,13 +148,13 @@ resource "aws_iam_role_policy" "rclone_event_run_task_with_any_role" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = concat([
+    Statement = [
       {
         Effect = "Allow"
         Action = "iam:PassRole"
         Resource = [
           aws_iam_role.clone.arn,
-          aws_iam_role.rclone_event.arn,
+          aws_iam_role.ecs_task_execution_role.arn,
         ]
       },
       {
@@ -162,7 +162,7 @@ resource "aws_iam_role_policy" "rclone_event_run_task_with_any_role" {
         Action   = "ecs:RunTask"
         Resource = "${aws_ecs_task_definition.clone_cron_td.arn_without_revision}:*"
       }
-    ])
+    ]
   })
 }
 
