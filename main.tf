@@ -99,7 +99,7 @@ locals {
         },
         {
           name  = "RCLONE_S3_ENV_AUTH"
-          value = true
+          value = "true"
         },
       ]
       secrets = [
