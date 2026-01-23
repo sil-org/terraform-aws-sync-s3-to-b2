@@ -97,6 +97,10 @@ locals {
           name  = "RCLONE_ARGUMENTS"
           value = var.rclone_arguments
         },
+        {
+          name  = "RCLONE_S3_ENV_AUTH"
+          value = true
+        },
       ]
       secrets = [
         {
